@@ -3,6 +3,26 @@ import createLiveChatCompletion, { LLMType } from "@/utils/liveGptClient";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import Markdown from "./components/Markdown";
 
+const ROLE_PRESETS = [
+  {
+    label: "Translator",
+    direction: "Translate any message you received to professional English.",
+  },
+  {
+    label: "Programmer",
+    direction:
+      "Your are a professional programmer. Answer the question with code example if necessary.",
+  },
+  {
+    label: "Email",
+    direction: "Transcript the message into a professional email.",
+  },
+  {
+    label: "Tweet",
+    direction: "Transcript the message into a tweet from top influencer.",
+  },
+];
+
 export default function App({
   parseHTML = true,
   defaultDirection,
@@ -10,7 +30,7 @@ export default function App({
   parseHTML?: boolean;
   defaultDirection?: string;
 }>) {
-  const [model, setModel] = useState("gpt-3.5-turbo");
+  const model: LLMType = "gpt-3.5-turbo";
   const [apiKey, setApiKey] = useState("");
   const [maxTokens, setMaxTokens] = useState("2048");
   const [direction, setDirection] = useState(
@@ -26,11 +46,6 @@ export default function App({
 
   const tailRef = useRef("");
 
-  const storeModel = (e: { target: { value: SetStateAction<string> } }) => {
-    setModel(e.target.value);
-    localStorage.setItem("model", String(e.target.value));
-  };
-
   const storeApiKey = (e: { target: { value: SetStateAction<string> } }) => {
     setApiKey(e.target.value);
     localStorage.setItem("apiKey", String(e.target.value));
@@ -44,9 +59,10 @@ export default function App({
     if (question !== "" && !isLoading) {
       setIsLoading(true);
       setAnswer("");
+      resultRef.current = "";
 
       const source = createLiveChatCompletion(
-        model as LLMType,
+        model,
         apiKey,
         Number(maxTokens),
         direction,
@@ -107,10 +123,7 @@ export default function App({
     if (localKey) {
       setApiKey(localKey);
     }
-    const localModel = localStorage.getItem("model");
-    if (localModel) {
-      setModel(localModel);
-    }
+    localStorage.setItem("model", model);
   }, []);
 
   useEffect(() => {
@@ -118,144 +131,100 @@ export default function App({
   }, [answer]);
 
   return (
-    <main className="container h-screen max-w-lg max-h-screen px-4 mx-auto overflow-hidden xl:max-w-screen-xl">
-      <div className="grid h-full gap-2 xl:grid-cols-2">
-        <div className="w-full">
-          <div className="flex flex-col h-full">
-            <div className="flex-none">
-              <div className="flex gap-1">
-                <div className="basis-3/4">
-                  <label>
-                    <span className="inline-block px-2 py-1 my-2 text-xs font-semibold text-teal-600 uppercase bg-teal-200 rounded">
-                      API_KEY
-                    </span>
-                    <input
-                      className="w-full h-8 px-5 py-2 font-medium text-white bg-transparent border border-white rounded-lg resize-none xl:h-12 hover:shadow-sm"
-                      name="apiKey"
-                      type="password"
-                      value={apiKey}
-                      onChange={storeApiKey}
-                    />
-                  </label>
-                </div>
-                <div className="basis-1/4">
-                  <label>
-                    <span className="inline-block px-2 py-1 my-2 text-xs font-semibold text-teal-600 uppercase bg-teal-200 rounded">
-                      Model
-                    </span>
-                    <select
-                      className="w-full h-8 px-5 py-2 font-medium text-white bg-transparent border border-white rounded-lg shadow-lg xl:h-12 hover:shadow-sm text-sm"
-                      value={model}
-                      onChange={storeModel}
-                    >
-                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                      <option value="claude-3-haiku">Claude-3 Haiku</option>
-                      <option value="llama-3-70b">Llama-3 70B</option>
-                      <option value="mixtral-8x7b">Mixtral-8x7B</option>
-                    </select>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div className="flex-none">
-              <label>
-                <span className="inline-block px-2 py-1 my-2 text-xs font-semibold text-red-600 uppercase bg-red-200 rounded">
-                  System
-                </span>
-                <input
-                  className="w-full h-8 px-5 py-2 font-medium text-white bg-transparent border border-white rounded-lg shadow-lg resize-none xl:h-12 hover:shadow-sm"
-                  name="system"
-                  value={direction}
-                  onChange={(e) => setDirection(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="flex-none">
-              <div className="flex gap-2 my-2">
-                <button
-                  className="h-8 w-full text-violet-100 border border-white hover:bg-slate-600 rounded-lg shadow-lg"
-                  onClick={() =>
-                    handleRoleChange(
-                      "Translate any message you received to professional English."
-                    )
-                  }
-                >
-                  Translator
-                </button>
-                <button
-                  className="h-8 w-full text-violet-100 border border-white hover:bg-slate-600 rounded-lg shadow-lg"
-                  onClick={() =>
-                    handleRoleChange(
-                      "Your are a professional programmer. Answer the question with code example if necessary."
-                    )
-                  }
-                >
-                  Programmer
-                </button>
-                <button
-                  className="h-8 w-full text-violet-100 border border-white hover:bg-slate-600 rounded-lg shadow-lg"
-                  onClick={() =>
-                    handleRoleChange(
-                      "Transcript the message into a professional email."
-                    )
-                  }
-                >
-                  Email
-                </button>
-                <button
-                  className="h-8 w-full text-violet-100 border border-white hover:bg-slate-600 rounded-lg shadow-lg"
-                  onClick={() =>
-                    handleRoleChange(
-                      "Transcript the message into a tweet from top influencer."
-                    )
-                  }
-                >
-                  Tweet
-                </button>
-              </div>
-            </div>
-            <div className="pb-12 grow">
-              <label>
-                <span className="inline-block px-2 py-1 my-2 text-xs font-semibold text-blue-600 uppercase bg-blue-200 rounded">
-                  User
-                </span>
-                <textarea
-                  className="w-full h-full px-5 py-2 font-medium text-white bg-transparent border border-white rounded-lg shadow-lg resize-none hover:shadow-sm"
-                  name="user"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="flex-none">
-              <button
-                disabled={isLoading}
-                className={
-                  isLoading
-                    ? "h-12 w-full px-6 py-2 my-2 text-gray-100 hover:bg-gray-500 bg-gray-500 rounded-lg shadow-lg"
-                    : "h-12 w-full px-6 py-2 my-2 text-violet-100 border border-white hover:bg-slate-600 rounded-lg shadow-lg"
-                }
-                onClick={handleSubmitPromptBtnClicked}
-              >
-                {isLoading ? `Loading...` : `Submit`}
-              </button>
-            </div>
+    <main className="mx-auto flex h-[100svh] w-full max-w-7xl overflow-hidden px-2 py-2 sm:px-4 sm:py-4 lg:h-[100vh] lg:px-8 lg:py-7">
+      <div className="glass-panel grid h-full w-full grid-rows-[minmax(0,1.08fr)_minmax(0,0.92fr)] gap-2 p-2 sm:gap-4 sm:p-4 xl:h-[calc(100vh-3.5rem)] xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] xl:grid-rows-1 xl:gap-6 xl:p-5">
+        <section className="flex min-h-0 flex-col gap-1.5 sm:gap-3">
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_210px] sm:gap-3">
+            <label className="flex flex-col gap-2">
+              <span className="badge-label bg-teal-300 text-teal-950">
+                API Key
+              </span>
+              <input
+                aria-label="API key"
+                className="field-input h-9 sm:h-10"
+                name="apiKey"
+                type="password"
+                placeholder="sk-..."
+                value={apiKey}
+                onChange={storeApiKey}
+              />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="badge-label bg-cyan-300 text-cyan-950">
+                Model
+              </span>
+              <input
+                aria-label="Model"
+                className="field-input h-9 cursor-not-allowed opacity-80 sm:h-10"
+                value="GPT-3.5 Turbo"
+                readOnly
+              />
+            </label>
           </div>
-        </div>
-        <div className="w-full pb-12 max-h-96 xl:max-h-screen xl:h-screen">
-          <label>
-            <span className="inline-block px-2 py-1 my-2 mr-1 text-xs font-semibold text-green-600 uppercase bg-green-200 rounded last:mr-0">
+
+          <label className="flex flex-col gap-1.5 sm:gap-2">
+            <span className="badge-label bg-rose-300 text-rose-950">System</span>
+            <input
+              aria-label="System prompt"
+              className="field-input h-9 sm:h-10"
+              name="system"
+              value={direction}
+              onChange={(e) => setDirection(e.target.value)}
+            />
+          </label>
+
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
+            {ROLE_PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                className="action-button h-8 text-[11px] sm:h-9 sm:text-sm"
+                onClick={() => handleRoleChange(preset.direction)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
+          <label className="flex min-h-0 grow flex-col gap-1.5 sm:gap-2">
+            <span className="badge-label bg-blue-300 text-blue-950">User</span>
+            <textarea
+              aria-label="User prompt"
+              className="field-input no-scrollbar min-h-0 grow resize-none p-3 text-sm leading-5 sm:p-4 sm:text-base sm:leading-6"
+              name="user"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
+          </label>
+
+          <button
+            disabled={isLoading}
+            className={`h-9 w-full rounded-xl border text-xs font-semibold tracking-wide transition duration-200 sm:h-10 sm:text-sm ${
+              isLoading
+                ? "cursor-not-allowed border-slate-500/35 bg-slate-700/70 text-slate-300"
+                : "border-blue-300/60 bg-blue-500/80 text-white hover:bg-blue-400/90"
+            }`}
+            onClick={handleSubmitPromptBtnClicked}
+          >
+            {isLoading ? "Loading..." : "Submit"}
+          </button>
+        </section>
+
+        <section className="flex min-h-0 flex-col">
+          <label className="flex h-full min-h-0 flex-col gap-1.5 sm:gap-2">
+            <span className="badge-label w-fit bg-emerald-300 text-emerald-950">
               Assistant
             </span>
-            <div className="w-full h-full px-5 py-2 overflow-x-hidden overflow-y-auto font-medium text-white border border-white rounded-lg shadow-lg hover:shadow-sm">
+            <div className="field-input no-scrollbar h-full min-h-0 overflow-x-hidden overflow-y-auto rounded-2xl p-3 text-sm font-medium leading-6 sm:p-4 sm:text-base sm:leading-7">
               {parseHTML ? (
                 <Markdown content={answer} />
               ) : (
-                <div className="flex flex-col">{answer}</div>
+                <div className="whitespace-pre-wrap">{answer}</div>
               )}
             </div>
           </label>
-        </div>
+        </section>
       </div>
     </main>
   );

@@ -6,6 +6,7 @@ import styles from "./ChatBox.module.css";
 import Markdown from "./Markdown";
 
 const ChatBox = () => {
+  const model: LLMType = "gpt-3.5-turbo";
   const [messages, setMessages] = useState<any[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +50,7 @@ const ChatBox = () => {
       setIsLoading(true);
 
       const source = createLiveChatCompletion(
-        localStorage.getItem("model") as LLMType,
+        model,
         localStorage.getItem("apiKey") as string,
         1024,
         systemPrompt
@@ -104,6 +105,10 @@ const ChatBox = () => {
   };
 
   useEffect(() => {
+    localStorage.setItem("model", model);
+  }, [model]);
+
+  useEffect(() => {
     if (messages[messages.length - 1]?.role === "user") {
       getGPTReply(messages[messages.length - 1]?.content);
     }
@@ -119,9 +124,21 @@ const ChatBox = () => {
   return (
     <div className={styles["container"]}>
       <div className={styles["chat-box"]}>
+        <div className={styles["chat-header"]}>
+          <div>
+            <p className={styles["chat-title"]}>Conversation</p>
+            <p className={styles["chat-subtitle"]}>
+              Streamed replies with markdown rendering
+            </p>
+          </div>
+          <span className={styles["chat-status"]}>
+            {isLoading ? "Responding..." : `${messages.length} messages`}
+          </span>
+        </div>
         <div
           ref={messagesContainerRef}
-          className={styles["messages-container"]}
+          className={`${styles["messages-container"]} no-scrollbar`}
+          aria-live="polite"
         >
           {messages.map((message, index) => (
             <div
@@ -141,6 +158,7 @@ const ChatBox = () => {
             type="button"
             onClick={toggleSystem}
             className={styles["setting-button"]}
+            aria-label="Toggle system prompt"
           >
             Config
           </button>
@@ -148,6 +166,7 @@ const ChatBox = () => {
             type="button"
             onClick={clearHistory}
             className={styles["clear-button"]}
+            aria-label="Clear chat history"
           >
             Clear
           </button>
@@ -160,21 +179,25 @@ const ChatBox = () => {
           value={systemPrompt}
           onChange={handleSystemPromptChange}
           placeholder="System prompt here..."
+          aria-label="System prompt"
         />
-        <input
-          className={styles["chat-input"]}
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          placeholder="Type your message here..."
-        />
-        <button
-          disabled={isLoading}
-          className={styles["submit-button"]}
-          type="submit"
-        >
-          Send
-        </button>
+        <div className={styles["compose-row"]}>
+          <input
+            className={styles["chat-input"]}
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="Type your message here..."
+            aria-label="Message input"
+          />
+          <button
+            disabled={isLoading}
+            className={styles["submit-button"]}
+            type="submit"
+          >
+            Send
+          </button>
+        </div>
       </form>
     </div>
   );

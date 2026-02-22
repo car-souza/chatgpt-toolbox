@@ -1,26 +1,36 @@
 .copy-button {
   position: absolute;
-  top: 0;
-  right: 10px;
+  top: 0.6rem;
+  right: 0.6rem;
   cursor: pointer;
-  margin: 5px;
-  padding: 0px 5px;
-  color: #eee;
-  border: #eee solid 1px;
-  border-radius: 5px;
-  transform: translateX(10px);
-  transition: all ease 0.3s;
+  margin: 0;
+  padding: 0.2rem 0.6rem;
+  color: #dbeafe;
+  border: 1px solid rgba(191, 219, 254, 0.35);
+  border-radius: 0.6rem;
+  background: rgba(15, 23, 42, 0.65);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  transition: all ease 0.2s;
   z-index: 99;
 }
 
+.copy-button:hover {
+  border-color: rgba(191, 219, 254, 0.65);
+  background: rgba(30, 41, 59, 0.78);
+}
+
 .copy-button:after {
-  content: "copy";
+  content: "Copy";
 }
 
 .blink {
-  opacity: 0.5;
+  opacity: 1;
+  color: #f8fafc;
+  border-color: rgba(147, 197, 253, 0.8);
+  background: rgba(37, 99, 235, 0.7);
 }
 
 .blink:after {
-  content: "copied";
+  content: "Copied";
 }
